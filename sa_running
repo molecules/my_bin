@@ -1,0 +1,1 @@
+sacct --state RUNNING --format=jobid%6,JobName%48,start,Elapsed,NodeList%11,ReqCPUS%2,ReqMem,Timelimit,Priority%5

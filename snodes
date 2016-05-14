@@ -1,0 +1,3 @@
+#!/bin/bash
+echo "NodeName CPUs CPUAlloc CPULoad   Memory MemAlloc  State"
+scontrol -o show node $1 | sed 's/=/ /g' | awk '{printf("%-12s %4d %8d %7.2f %8d %8d  %s \n",$2,$12,$8,$14,$28,$30,$36)}'

@@ -1,0 +1,1 @@
+sacct -a --state PENDING --format=JobName%48,jobid%6,Submit,ReqCPUS,ReqMem%8,Timelimit,State,Priority%4,user
