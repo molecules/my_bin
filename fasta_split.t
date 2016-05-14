@@ -13,7 +13,9 @@ use File::Slurp qw( slurp    );  # Read a file into a string
 use File::Path qw( make_path remove_tree);
 use Carp        qw( croak    );  # Push blame for errors back to line calling function
 
+test(1);
 test(3);
+test(15);
 
 sub test
 {
@@ -21,13 +23,19 @@ sub test
     my $infile  = filename_for('input');
     system("fasta_split.pl $infile $num_files");
 
-    for my $num (1 .. $num_files)
+    my $max_files = $num_files;
+    if ($max_files > 7)
+    {
+        $max_files = 7;
+    }
+
+    for my $num (1 .. $max_files)
     {
         my $suffix            = '_' . $num_files . '_' . $num;
         my $result_filename   = $infile . $suffix;
         my $result            = slurp $result_filename;
         my $expected          = string_from('expected' . $suffix);
-        is( $result, $expected, 'successfully created and manipulated temp files' );
+        is( $result, $expected, "split$suffix correct");
         unlink $result_filename;
     }
 
@@ -132,9 +140,9 @@ CCCCCCCCCCCCCCCCCCCCCC
 GGGGGGGGGGGGGG
 >F
 TTTTTTTTTTTTTTTT
->H
+>G
 AAAAAAAAAAAAAAAA
-__[ expected ]__
+__[ expected_1_1 ]__
 >A
 AAAACCCCGGTTTT
 >B
@@ -147,20 +155,43 @@ CCCCCCCCCCCCCCCCCCCCCC
 GGGGGGGGGGGGGG
 >F
 TTTTTTTTTTTTTTTT
->H
+>G
 AAAAAAAAAAAAAAAA
 __[ expected_3_1 ]__
 >A
 AAAACCCCGGTTTT
 >B
 AAAAAAAACGT
-__[ expected_3_2 ]__
 >C
 AAAAAAAAAAAAAAAAAA
+__[ expected_3_2 ]__
 >D
 CCCCCCCCCCCCCCCCCCCCCC
+>E
+GGGGGGGGGGGGGG
 __[ expected_3_3 ]__
 >F
 TTTTTTTTTTTTTTTT
->H
+>G
+AAAAAAAAAAAAAAAA
+__[ expected_15_1 ]__
+>A
+AAAACCCCGGTTTT
+__[ expected_15_2 ]__
+>B
+AAAAAAAACGT
+__[ expected_15_3 ]__
+>C
+AAAAAAAAAAAAAAAAAA
+__[ expected_15_4 ]__
+>D
+CCCCCCCCCCCCCCCCCCCCCC
+__[ expected_15_5 ]__
+>E
+GGGGGGGGGGGGGG
+__[ expected_15_6 ]__
+>F
+TTTTTTTTTTTTTTTT
+__[ expected_15_7 ]__
+>G
 AAAAAAAAAAAAAAAA

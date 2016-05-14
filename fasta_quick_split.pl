@@ -6,8 +6,11 @@ use 5.010;
 
 use Bio::SeqIO;
 
-my $filename  = shift;
-my $num_files = shift;
+my $filename  = shift // usage();
+my $num_files = shift // usage();
+
+usage() if substr($filename,0,2) eq '-h';
+usage() if substr($num_files,0,2) eq '-h';
 
 # Read in all of the sequence data
 my $fasta_obj = Bio::SeqIO->new( -file => $filename, -format => 'FASTA');
@@ -45,4 +48,9 @@ sub _fh_iterator
         return $fh_for{$current};
     };
 
+}
+
+sub usage 
+{
+    die "USAGE:\n\t$0 filename num_of_files_desired\n";
 }

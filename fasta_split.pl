@@ -5,18 +5,13 @@ use autodie;
 use 5.012;
 
 use Bio::SeqIO;
-use Math::Utils qw( floor );
 
-my $filename     = shift;
-my $num_files = shift;
+my $filename  = shift // usage();
+my $num_files = shift // usage();
 
-# create file handles
-my %fh_for;
-for my $num ( 1 .. $num_files )
-{
-    open(my $fh, '>', $filename . '_' . $num_files . '_' . $num); 
-    $fh_for{$num} = $fh;
-}
+usage() if substr($filename,0,2)  eq '-h';
+usage() if substr($num_files,0,2) eq '-h';
+
 
 # Read in all of the sequence data
 my $bio_obj = Bio::SeqIO->new( -file => $filename, -format => 'FASTA');
@@ -28,22 +23,78 @@ while (my $seq_obj = $bio_obj->next_seq)
     push @seq_objs, $seq_obj;
 }
 
-# Determine the best way to split up the data
-my $num_seqs = scalar @seq_objs;
+my @fasta_sets = fair_lists( \@seq_objs, $num_files);  
 
-my $min_seq_per_file = floor($num_seqs / $num_files);
-my $max_seq_per_file = $min_seq_per_file + 1;
-
-my $extra_counter = my $num_files_with_an_extra = $num_seqs - ($min_seq_per_file * $num_files);
-my $min_counter   = my $num_files_with_min = $num_files - $num_files_with_an_extra;
-
-my $index_of_fh = 1;
-
-my $current_read_number = 0;
-
-for my $seq_obj (@seq_objs)
+for my $index ( 0 .. $#fasta_sets)
 {
-    say '>' . $seq_obj->id;
-    say $seq_obj->seq;
+    my $num = $index + 1;
+    open(my $fh, '>', $filename . '_' . $num_files . '_' . $num);
+    print_fasta( $fh, $fasta_sets[ $index ] ); 
 }
 
+sub print_fasta
+{
+    my $fh         = shift;
+    my $fasta_aref = shift;
+    
+    for my $seq_obj (@{ $fasta_aref} )
+    {
+        say {$fh} '>' . $seq_obj->id;
+        say {$fh} $seq_obj->seq;
+    }
+    close $fh;
+}
+
+sub fair_lists 
+{
+    my @array        = @{ shift() };
+    my $num_lists    = shift;
+    my $num_elements = scalar @array;
+
+    if ($num_lists > $num_elements) {
+        my @one_element_lists = map { [ $_ ] } @array; 
+        return @one_element_lists;
+    }
+
+    my $num_large    = $num_elements % $num_lists; # remainder
+    my $num_small    = $num_lists - $num_large;
+
+    my $small_size = int($num_elements/$num_lists);
+    my $large_size = $small_size + 1; # same as ceiling($num_element/$num_lists);
+
+    my $first_small = ($num_large * $large_size);
+    my $last_large  = $first_small - 1;
+     
+    my @first_sublist  = @array[ 0 .. $last_large];
+    my @second_sublist = @array[ $first_small .. $num_elements - 1 ];
+
+    my @large_lists = rotor( \@first_sublist, $large_size);
+    my @small_lists = rotor( \@second_sublist,  $small_size);
+    my @all_lists   = (@large_lists, @small_lists);
+    return @all_lists;
+}
+
+sub rotor
+{
+    my @array         = @{ shift() };
+    my $num_per_array = shift;
+    my $elements      = scalar @array;
+    my $num_of_arrays = $elements / $num_per_array;
+  
+    my $start_index = 0;
+    my $last_index = $num_per_array - 1; 
+    my @out_arrays;
+    for my $array_num ( 1 .. $num_of_arrays)
+    {
+        my @temp_array = @array[ $start_index .. $last_index ];      
+        push @out_arrays, \@temp_array;
+        $start_index += $num_per_array;
+        $last_index  += $num_per_array;
+    } 
+    return @out_arrays; 
+}
+
+sub usage 
+{
+    die "USAGE:\n\t$0 filename num_of_files_desired\n";
+}
