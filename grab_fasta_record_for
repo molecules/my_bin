@@ -1,0 +1,9 @@
+#!/bin/env perl6
+
+sub MAIN (*@filenames, :$start!)
+{
+    for @filenames -> $filename
+    {
+        .say if /^^ '>' $start / fff^ /^^ '>' / for $filename.IO.lines;
+    }
+}
