@@ -1,8 +1,9 @@
 #!/bin/env perl6
 
+my $SUM;
+
 sub MAIN ( $filename )
 {
-    my $sum;
     my @pos-forward-reverse;
     for $filename.IO.lines -> $line
     {
@@ -13,12 +14,18 @@ sub MAIN ( $filename )
 
         @pos-forward-reverse.push([ $position, $forward, $reverse]); 
         
-        $sum +=sum($forward,$reverse);
+        $SUM +=sum($forward,$reverse);
     }
 
     for @pos-forward-reverse -> @pos-f-r
     {
         my ($pos, $forward, $reverse) = @pos-f-r;
-        say ($pos, $forward*1000000/$sum, $reverse*1000000/$sum).join("\t");
+
+        say ($pos, $forward.&normalize, $reverse.&normalize).join("\t");
     }
+}
+
+sub normalize ($value)
+{
+    return ($value*1000000/$SUM).round(0.01);
 }

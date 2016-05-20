@@ -20,7 +20,7 @@ sub input
 {
     return q:to/END/;
         position	forward	reverse
-        1	10	20
+        1	10	21
         2	25	45
         END
 }
@@ -29,8 +29,8 @@ sub expected
 {
     return q:to/END/;
         position	forward	reverse
-        1	100000	200000
-        2	250000	450000
+        1	99009.9	207920.79
+        2	247524.75	445544.55
         END
 }
 
