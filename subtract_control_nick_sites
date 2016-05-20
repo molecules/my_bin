@@ -1,0 +1,75 @@
+#!/bin/env perl6
+
+sub MAIN ( :$control, *@files )
+{
+    my %normalized;
+    %normalized<control> = normalize-file($control);
+
+    my $header = ("pos", "control_for", "control_rev", map( {"{$_}_for\t{$_}_rev"}, @files)).join("\t");
+
+    say $header;
+
+    for @files -> $file
+    {
+        %normalized{$file} = normalize-file($file);
+    }
+
+    my $positions = bag(map { %normalized{$_}.keys }, %normalized.keys);
+
+    for $positions.keys.sort -> $pos
+    {
+        my $control-for = %normalized<control>{$pos}<forward> // 0;
+        my $control-rev = %normalized<control>{$pos}<reverse> // 0;
+        print "$pos"; 
+
+        for @files -> $file
+        {
+            my $file-for = %normalized{$file}{$pos}<forward> // 0;
+            my $file-rev = %normalized{$file}{$pos}<reverse> // 0;
+            my $for-diff = $file-for - $control-for;
+            my $rev-diff = $file-rev - $control-rev;
+            print "\t$for-diff\t$rev-diff";
+        }
+
+        # Print newline
+        print "\n";
+    }
+}
+
+sub normalize-file ($file)
+{
+    my $SUM;
+
+    sub normalize ($value)
+    {
+        return ($value*1000000/$SUM).round(0.01);
+    }
+
+    my %normalized-file;
+
+    my %count;
+    my @pos-forward-reverse;
+    for $file.IO.lines -> $line
+    {
+        # skip header on the first loop iteration
+        once { next; }
+
+        my ($position,$forward, $reverse) = $line.split("\t");
+
+        @pos-forward-reverse.push([ $position, $forward, $reverse]); 
+
+        %count{$position}<forward> = $forward;
+        %count{$position}<reverse> = $reverse;
+        
+        $SUM +=sum($forward,$reverse);
+    }
+
+    for @pos-forward-reverse -> @pos-f-r
+    {
+        my ($pos, $forward, $reverse) = @pos-f-r;
+
+        %normalized-file{$pos}<forward> = $forward.&normalize; 
+        %normalized-file{$pos}<reverse> = $reverse.&normalize; 
+    }
+    return %normalized-file;
+}
