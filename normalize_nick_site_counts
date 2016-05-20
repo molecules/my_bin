@@ -1,0 +1,24 @@
+#!/bin/env perl6
+
+sub MAIN ( $filename )
+{
+    my $sum;
+    my @pos-forward-reverse;
+    for $filename.IO.lines -> $line
+    {
+        # output header on the first loop iteration
+        once { say $line; next; }
+
+        my ($position,$forward, $reverse) = $line.split("\t");
+
+        @pos-forward-reverse.push([ $position, $forward, $reverse]); 
+        
+        $sum +=sum($forward,$reverse);
+    }
+
+    for @pos-forward-reverse -> @pos-f-r
+    {
+        my ($pos, $forward, $reverse) = @pos-f-r;
+        say ($pos, $forward*1000000/$sum, $reverse*1000000/$sum).join("\t");
+    }
+}
