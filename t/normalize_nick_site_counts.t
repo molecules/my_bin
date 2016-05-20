@@ -16,6 +16,8 @@ is $result, expected, "Correctly normalized read counts";
 
 unlink $input-filename, $output-filename;
 
+done-testing;
+
 sub input 
 {
     return q:to/END/;
