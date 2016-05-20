@@ -50,7 +50,7 @@ sub expected
 {
     return q:to/END/;
         position	forward	reverse
-        1	0	0	20833.33	-20833.34
+        1	0	0	20833.33	-20833.33
         2	0	0	0	0
         END
 }

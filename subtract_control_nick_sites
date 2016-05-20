@@ -5,7 +5,7 @@ sub MAIN ( :$control, *@files )
     my %normalized;
     %normalized<control> = normalize-file($control);
 
-    my $header = ("pos", "control_for", "control_rev", map( {"{$_}_for\t{$_}_rev"}, @files)).join("\t");
+    my $header = ("pos", map( {"{$_}_for\t{$_}_rev"}, @files)).join("\t");
 
     say $header;
 
@@ -26,8 +26,8 @@ sub MAIN ( :$control, *@files )
         {
             my $file-for = %normalized{$file}{$pos}<forward> // 0;
             my $file-rev = %normalized{$file}{$pos}<reverse> // 0;
-            my $for-diff = $file-for - $control-for;
-            my $rev-diff = $file-rev - $control-rev;
+            my $for-diff = ($file-for - $control-for).round(0.01);
+            my $rev-diff = ($file-rev - $control-rev).round(0.01);
             print "\t$for-diff\t$rev-diff";
         }
 
@@ -42,7 +42,7 @@ sub normalize-file ($file)
 
     sub normalize ($value)
     {
-        return ($value*1000000/$SUM).round(0.01);
+        return ($value*1000000/$SUM);
     }
 
     my %normalized-file;
