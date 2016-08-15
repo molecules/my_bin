@@ -14,7 +14,8 @@ multi MAIN ( 'tomorrow' )
 
 multi MAIN ( :$report-offset=0 )
 {
-    my $new-report = %*ENV<HOME> ~ "/reports/{ Date.today.later( day => $report-offset) }.txt";
+    my $desired-date = Date.today.later( day => $report-offset).Str ;
+    my $new-report = %*ENV<HOME> ~ "/reports/$desired-date.txt";
     
     my $old-report;
     
@@ -22,7 +23,7 @@ multi MAIN ( :$report-offset=0 )
     my $copy-offset = 0;
     until $new-report.IO.e
     {
-        once { note 'A report for today has not been found. Searching for the previous report to copy it.' }
+        once { note "Searching for the most recent report to the requested date." }
 
         my $old-date = Date.today.earlier( day => $copy-offset++).Str;
 
@@ -30,6 +31,7 @@ multi MAIN ( :$report-offset=0 )
     
         if $old-report.IO.e
         {
+            note "Copying '$old-report' to '$new-report'. Please bring it up to date.";
             run 'cp', $old-report, $new-report;
         }
         else {
@@ -38,7 +40,7 @@ multi MAIN ( :$report-offset=0 )
 
         if $copy-offset > $MAX-COPY-OFFSET
         {
-            note "Hopefully this is your first report ever, otherwise it seems to have been over '$MAX-COPY-OFFSET' days since your last report.";
+            note "Creating a brand new report because an old one within $MAX-COPY-OFFSET days has not been found.";
 
             # Quit searching for old report
             last;
