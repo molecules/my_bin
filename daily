@@ -1,0 +1,2 @@
+#!/bin/env perl6
+run 'update-report', 'today';

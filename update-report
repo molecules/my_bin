@@ -1,0 +1,89 @@
+#!/bin/env perl6
+
+my $MAX-COPY-OFFSET = 30; # For the extreme case (sickness and/or vacation?)
+
+multi MAIN ( 'today' )
+{
+    samewith :0report-offset;
+}
+
+multi MAIN ( 'tomorrow' )
+{
+    samewith :1report-offset;
+}
+
+multi MAIN ( :$report-offset=0 )
+{
+    my $new-report = %*ENV<HOME> ~ "/reports/{ Date.today.later( day => $report-offset) }.txt";
+    
+    my $old-report;
+    
+    # Search for an old report to copy, if desired report does not exist
+    my $copy-offset = 0;
+    until $new-report.IO.e
+    {
+        once { note 'A report for today has not been found. Searching for the previous report to copy it.' }
+
+        my $old-date = Date.today.earlier( day => $copy-offset++).Str;
+
+        $old-report = %*ENV<HOME> ~ "/reports/$old-date.txt";
+    
+        if $old-report.IO.e
+        {
+            run 'cp', $old-report, $new-report;
+        }
+        else {
+            note "No report found for $old-date.";
+        }
+
+        if $copy-offset > $MAX-COPY-OFFSET
+        {
+            note "Hopefully this is your first report ever, otherwise it seems to have been over '$MAX-COPY-OFFSET' days since your last report.";
+
+            # Quit searching for old report
+            last;
+        }
+    }
+   
+    open-in-editor $new-report;
+
+    update-next-id-for $new-report;
+}
+
+sub update-next-id-for ( $report )
+{
+
+    my $report-contents = slurp $report;
+
+    my $out;
+
+    my $max-id = -1;
+
+    for $report-contents.lines -> $line
+    {
+        if $line ~~ /^ \s* (\d+) '.' \s+ /
+        {
+            # capture the ID number and save it, if greatest yet seen
+            $max-id max= $0.Int;
+        }
+
+        if $line !~~ rx:i/^ \s* Next \s* ID /
+        {
+            $out ~= "$line\n";
+        }
+
+    }
+
+    $out ~= "Next ID is {++$max-id}\n";
+
+    spurt $report, $out;
+}
+
+sub open-in-editor ( $file-name )
+{
+
+    # Open editor to 
+    my $editor = %*ENV<EDITOR> // 'vim';
+    run $editor, $file-name;
+    return;
+}
