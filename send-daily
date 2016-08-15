@@ -1,0 +1,15 @@
+#!/bin/env perl6
+
+# Get string representation of the day
+my $today = Date.today.Str;
+
+my $report-to-send = "%*ENV<HOME>/reports/$today.txt";
+
+unless $report-to-send.IO.e
+{
+    run 'daily';
+}
+
+shell "cat $report-to-send | mail -s 'Daily report ($today)' -c %*ENV<MY_EMAIL> -c %*ENV<COLLEAGUE_EMAIL> %*ENV<SUPERVISOR_EMAIL>";
+
+# TODO: Before use in a production setting, we should add verification code that the emails only contain safe characters
