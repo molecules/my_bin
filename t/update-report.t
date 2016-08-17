@@ -8,19 +8,21 @@ my $home = %*ENV<HOME>;
 
 mkdir "$home/reports";
 
-my $yesterday's-file = "$home/reports/" ~ Date.today.earlier( day => 1 ).Str ~ ".txt";
-my $today's-file     = "$home/reports/" ~ Date.today.Str                     ~ ".txt";
-
-spurt $yesterday's-file, yesterday's-report;
-
-shell "daily";
-
-my $today's-report = slurp $today's-file;
-
-is $today's-report, expected, "Created today's report based on yesterday's";
-
-unlink $yesterday's-file;
-unlink $today's-file;
+{ # Test using yesterday's file
+    my $yesterday's-file = "$home/reports/" ~ Date.today.earlier( day => 1 ).Str ~ ".txt";
+    my $today's-file     = "$home/reports/" ~ Date.today.Str                     ~ ".txt";
+    
+    spurt $yesterday's-file, yesterday's-report;
+    
+    shell "daily";
+    
+    my $today's-report = slurp $today's-file;
+    
+    is $today's-report, expected, "Created today's report based on yesterday's";
+    
+    unlink $yesterday's-file;
+    unlink $today's-file;
+}
 
 done-testing;
 
