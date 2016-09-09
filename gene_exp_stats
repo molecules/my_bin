@@ -1,0 +1,16 @@
+#!/bin/env perl6
+
+# Quick stats from gene_exp.diff file 
+
+my $total-lines = (qx{ wc -l      gene_exp.diff}).words[0] - 1 ;  # subtract one for the header
+my $total-ok    = qx{ grep -c OK gene_exp.diff}; 
+my $total-yes   = qx{ grep -c yes gene_exp.diff};
+
+put floor-percent-of($total-ok,$total-lines)  ~ " percent OK of total";
+put floor-percent-of($total-yes,$total-ok)    ~ " percent yes of OK";
+put floor-percent-of($total-yes,$total-lines) ~ " percent yes of total";
+
+sub floor-percent-of ( $dividend, $total )
+{
+    return floor 100 * $dividend / $total;
+}
